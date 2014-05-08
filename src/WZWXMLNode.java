@@ -1,3 +1,4 @@
+import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class WZWXMLNode {
@@ -6,6 +7,7 @@ public class WZWXMLNode {
 	
 	protected String _contentString = "";
 	protected WZWXMLParser.XMLNodeType _nodeType;
+	protected Hashtable<String, String> _attributesHashtable;
 	protected LinkedList<WZWXMLNode> _childrenNodeList = new LinkedList<WZWXMLNode>();
 	protected WZWXMLNode _parentNode = null;
 	
@@ -26,6 +28,18 @@ public class WZWXMLNode {
 		return _childrenNodeList.add(child);
 	}
 	
+	public String addAttribute(String key, String value) {
+		if (_attributesHashtable == null) {
+			_attributesHashtable = new Hashtable<String, String>();
+		}
+		
+		return _attributesHashtable.put(key, value);
+	}
+	
+	public String getAttributeWithKey(String key) {
+		return _attributesHashtable.get(key);
+	}
+	
 	public void appendingString(String str) {
 		_contentString += str;
 	}
@@ -36,5 +50,13 @@ public class WZWXMLNode {
 	
 	public WZWXMLNode[] getChildren() {
 		return _childrenNodeList.toArray(new WZWXMLNode[0]);
+	}
+	
+	public void printTree() {
+		System.out.println(_contentString);
+		int size = _childrenNodeList.size();
+		for (int i = 0; i < size; i++) {
+			_childrenNodeList.get(i).printTree();
+		}
 	}
 }

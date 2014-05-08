@@ -6,7 +6,10 @@ public class WZWXMLParser {
 		ST_BEGIN,
 		ST_COMMENT,
 		ST_TAG_START,
-		ST_TAG_ATTRIBUTE,
+		ST_TAG_ATTRIBUTE_NAME_START,
+		ST_TAG_ATTRIBUTE_NAME_END,
+		ST_TAG_ATTRIBUTE_VALUE_START,
+		ST_TAG_ATTRIBUTE_VALUE_END,
 		ST_TAG,
 		ST_TAG_END,
 		ST_CONTENT_START,
@@ -21,19 +24,25 @@ public class WZWXMLParser {
 	
 	public enum XMLNodeType{
 		TYPE_ROOT,
-		TYPE_XML,
 		TYPE_NODE,
 		TYPE_COMMENT
 	}
 			
 	protected char[] _XMLContent = null;
 	protected Hashtable<String, String> _XMLHash;
-	protected WZWXMLNode xmlRootNode = new WZWXMLNode(XMLNodeType.TYPE_ROOT);
+	protected WZWXMLNode _xmlRootNode = new WZWXMLNode(XMLNodeType.TYPE_ROOT);
 	
 	private int _currentIndex = 0;
 	
 	public WZWXMLParser(char[] XMLContent){
 		_XMLContent = XMLContent;
+	}
+	
+	protected void setNodeKey(WZWXMLNode node, int beginIndex, int endIndex) {
+		String key = new String(_XMLContent, beginIndex, endIndex - beginIndex + 1);
+		if (key != null && key.length() > 0) {
+			node._keyString = key;
+		}
 	}
 	
 	protected WZWXMLNode loadNode(char[] XMLContent) throws Exception {
@@ -42,6 +51,7 @@ public class WZWXMLParser {
 		XMLNodeState parserState = XMLNodeState.ST_BEGIN;
 		boolean isContinue = true;
 		WZWXMLNode node = null;
+		String attrKey = null;
 		while (XMLContent[_currentIndex] != '\0' && isContinue) {
 			switch (parserState) {
 			case ST_BEGIN:{
@@ -49,7 +59,7 @@ public class WZWXMLParser {
 					if (XMLContent[_currentIndex + 1] == '?') {
 						_currentIndex++;
 						parserState = XMLNodeState.ST_TAG_START;
-						node = new WZWXMLNode(XMLNodeType.TYPE_XML);
+						node = _xmlRootNode;
 					}
 					else if (XMLContent[_currentIndex + 1] == '!' && XMLContent[_currentIndex + 2] == '-' && XMLContent[_currentIndex + 2] == '-' ) {
 						_currentIndex += 3;
@@ -76,24 +86,65 @@ public class WZWXMLParser {
 				break;
 			}
 			case ST_TAG:{
-				if ((XMLContent[_currentIndex] == '?' && XMLContent[_currentIndex + 1] == '>' && node.getNodeType() == XMLNodeType.TYPE_XML) ||
-						(XMLContent[_currentIndex] == '>' && node.getNodeType() == XMLNodeType.TYPE_NODE)) {
+				if (XMLContent[_currentIndex] == ' ') {
+					parserState = XMLNodeState.ST_TAG_ATTRIBUTE_NAME_START;
+					endIndex = _currentIndex - 1;
+					setNodeKey(node, beginIndex, endIndex);
+				}
+				else if (XMLContent[_currentIndex] == '?' && XMLContent[_currentIndex + 1] == '>' && node.getNodeType() == XMLNodeType.TYPE_ROOT) {
 					parserState = XMLNodeState.ST_TAG_END;
 					endIndex = _currentIndex - 1;
-					node._keyString = new String(XMLContent, beginIndex, endIndex - beginIndex + 1);
+					setNodeKey(node, beginIndex, endIndex);
+					_currentIndex++;
+				}
+				else if (XMLContent[_currentIndex] == '>' && node.getNodeType() == XMLNodeType.TYPE_NODE) {
+					parserState = XMLNodeState.ST_TAG_END;
+					endIndex = _currentIndex - 1;
+					setNodeKey(node, beginIndex, endIndex);
 				}
 				break;
 			}
-			case ST_TAG_ATTRIBUTE:{
-				throw new Exception("ST_TAG_ATTRIBUTE DID NOT IMPLEMENTATION");
-//				if (_XMLContent[currentIndex] == '?' && _XMLContent[currentIndex + 1] == '>' && node.getNodeType() == XMLNodeType.TYPE_XML) {
-//					nodeState = XMLNodeState.ST_TAG_END;
-//					currentIndex++;
-//				}
-//				else if (_XMLContent[currentIndex] == '>' && node.getNodeType() == XMLNodeType.TYPE_NODE) {
-//					nodeState = XMLNodeState.ST_TAG_END;
-//				}
-//				break;
+			case ST_TAG_ATTRIBUTE_NAME_START:{
+				if (_XMLContent[_currentIndex] != ' ') {
+					if (_XMLContent[_currentIndex] == '>' && node.getNodeType() == XMLNodeType.TYPE_NODE) {
+						parserState = XMLNodeState.ST_TAG_END;
+					}
+					else if (_XMLContent[_currentIndex] == '?' && _XMLContent[_currentIndex + 1] == '>' && node.getNodeType() == XMLNodeType.TYPE_ROOT) {
+						parserState = XMLNodeState.ST_TAG_END;
+						_currentIndex++;
+					}
+					else {
+						beginIndex = _currentIndex;
+						endIndex = _currentIndex;
+						parserState = XMLNodeState.ST_TAG_ATTRIBUTE_NAME_END;
+						_currentIndex--;
+					}
+				}
+				break;
+			}
+			case ST_TAG_ATTRIBUTE_NAME_END:{
+				if (_XMLContent[_currentIndex] == '=') {
+					endIndex = _currentIndex - 1;
+					attrKey = new String(_XMLContent, beginIndex, endIndex - beginIndex + 1);
+					parserState = XMLNodeState.ST_TAG_ATTRIBUTE_VALUE_START;
+				}
+				break;
+			}
+			case ST_TAG_ATTRIBUTE_VALUE_START:{
+				if (_XMLContent[_currentIndex] == '"') {
+					beginIndex = _currentIndex + 1;
+					endIndex = _currentIndex + 1;
+					parserState = XMLNodeState.ST_TAG_ATTRIBUTE_VALUE_END;
+				}
+				break;
+			}
+			case ST_TAG_ATTRIBUTE_VALUE_END:{
+				if (_XMLContent[_currentIndex] == '"') {
+					endIndex = _currentIndex - 1;
+					node.addAttribute(attrKey, new String(_XMLContent, beginIndex, endIndex - beginIndex + 1));
+					parserState = XMLNodeState.ST_TAG_ATTRIBUTE_NAME_START;
+				}
+				break;
 			}
 			case ST_TAG_END:{
 				parserState = WZWXMLParser.XMLNodeState.ST_CONTENT_START;
@@ -176,8 +227,8 @@ public class WZWXMLParser {
 	
 	public WZWXMLNode parse() throws Exception {
 		_currentIndex = 0;
-		xmlRootNode = new WZWXMLNode(XMLNodeType.TYPE_ROOT);
-		xmlRootNode.addChild(loadNode(_XMLContent));
-		return xmlRootNode;
+		_xmlRootNode = new WZWXMLNode(XMLNodeType.TYPE_ROOT);
+		loadNode(_XMLContent);
+		return _xmlRootNode;
 	}
 }
