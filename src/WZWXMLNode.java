@@ -11,6 +11,17 @@ public class WZWXMLNode {
 	protected LinkedList<WZWXMLNode> _childrenNodeList = new LinkedList<WZWXMLNode>();
 	protected WZWXMLNode _parentNode = null;
 	
+	protected void print(int indention) {
+		for (int i = 0; i < indention; i++) {
+			System.out.print(' ');
+		}
+		System.out.println(_keyString + " : " + _contentString);
+		int size = _childrenNodeList.size();
+		for (int i = 0; i < size; i++) {
+			_childrenNodeList.get(i).print(indention + 1);
+		}
+	}
+	
 	public WZWXMLNode(WZWXMLParser.XMLNodeType nodeType){
 		_nodeType = nodeType;
 	}
@@ -48,10 +59,6 @@ public class WZWXMLNode {
 	}
 	
 	public void printTree() {
-		System.out.println(_contentString);
-		int size = _childrenNodeList.size();
-		for (int i = 0; i < size; i++) {
-			_childrenNodeList.get(i).printTree();
-		}
+		print(0);
 	}
 }

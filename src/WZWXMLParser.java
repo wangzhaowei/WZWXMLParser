@@ -57,10 +57,9 @@ public class WZWXMLParser {
 						parserState = XMLNodeState.ST_TAG_START;
 						node = _xmlRootNode;
 					}
-					else if (XMLContent[_currentIndex + 1] == '!' && XMLContent[_currentIndex + 2] == '-' && XMLContent[_currentIndex + 2] == '-' ) {
+					else if (XMLContent[_currentIndex + 1] == '!' && XMLContent[_currentIndex + 2] == '-' && XMLContent[_currentIndex + 3] == '-' ) {
 						_currentIndex += 3;
 						parserState = XMLNodeState.ST_COMMENT;
-						node = new WZWXMLNode(XMLNodeType.TYPE_COMMENT);
 					}
 					else{
 						parserState = XMLNodeState.ST_TAG_START;
@@ -70,7 +69,10 @@ public class WZWXMLParser {
 				break;
 			}
 			case ST_COMMENT:{
-				throw new Exception("ST_COMMENT DID NOT IMPLEMENTATION");
+				if (_XMLContent[_currentIndex] == '-' && _XMLContent[_currentIndex + 1] == '-' && _XMLContent[_currentIndex + 2] == '>') {
+					_currentIndex += 2;
+				}
+				break;
 			}
 			case ST_TAG_START:{
 				if (XMLContent[_currentIndex] != ' ') {
@@ -208,7 +210,6 @@ public class WZWXMLParser {
 	
 	public WZWXMLNode parse() throws Exception {
 		_currentIndex = 0;
-		_xmlRootNode = new WZWXMLNode(XMLNodeType.TYPE_ROOT);
 		loadNode(_XMLContent);
 		return _xmlRootNode;
 	}
