@@ -1,6 +1,5 @@
 import java.util.Hashtable;
 
-
 public class WZWXMLParser {
 	public enum XMLNodeState{
 		ST_BEGIN,
@@ -14,12 +13,9 @@ public class WZWXMLParser {
 		ST_TAG_END,
 		ST_CONTENT_START,
 		ST_CONTENT,
-		ST_CONTENT_END,
 		ST_CHILD,
 		ST_END_TAG_START,
 		ST_END_TAG,
-		ST_END_TAG_END,
-		ST_PARSE_END
 	}
 	
 	public enum XMLNodeType{
@@ -167,7 +163,7 @@ public class WZWXMLParser {
 					}
 					
 					if (XMLContent[_currentIndex + 1] == '/' && node._nodeType == XMLNodeType.TYPE_NODE) {
-						parserState = XMLNodeState.ST_CONTENT_END;
+						parserState = XMLNodeState.ST_END_TAG_START;
 						_currentIndex++;
 					}
 					else {
@@ -184,11 +180,6 @@ public class WZWXMLParser {
 				parserState = XMLNodeState.ST_CONTENT_START;
 				break;
 			}
-			case ST_CONTENT_END:{
-				parserState = XMLNodeState.ST_END_TAG_START;
-				_currentIndex--;
-				break;
-			}
 			case ST_END_TAG_START:{
 				beginIndex = _currentIndex;
 				endIndex = _currentIndex;
@@ -201,19 +192,9 @@ public class WZWXMLParser {
 					endIndex = _currentIndex - 1;
 					String endTagString = new String(XMLContent, beginIndex, endIndex - beginIndex + 1);
 					if (endTagString.equals(node._keyString)) {
-						parserState = XMLNodeState.ST_END_TAG_END;
+						isContinue = false;
 					}
 				}
-				break;
-			}
-			case ST_END_TAG_END:{
-				parserState = XMLNodeState.ST_PARSE_END;
-				_currentIndex--;
-				break;
-			}
-			case ST_PARSE_END:{
-				isContinue = false;
-				_currentIndex--;
 				break;
 			}
 			default:

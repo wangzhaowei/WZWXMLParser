@@ -15,11 +15,6 @@ public class WZWXMLNode {
 		_nodeType = nodeType;
 	}
 	
-	public WZWXMLNode(WZWXMLParser.XMLNodeType nodeType, WZWXMLNode parentNode){
-		_nodeType = nodeType;
-		_parentNode = parentNode;
-	}
-	
 	public boolean addChild(WZWXMLNode child) {
 		if (child == null) {
 			return false;
