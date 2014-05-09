@@ -1,10 +1,10 @@
+package WZWXML;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class WZWXMLNode {
 	
-	public String _keyString;
-	
+	protected String _keyString;
 	protected String _contentString = "";
 	protected WZWXMLParser.XMLNodeType _nodeType;
 	protected Hashtable<String, String> _attributesHashtable;
@@ -48,6 +48,10 @@ public class WZWXMLNode {
 	
 	public void appendingString(String str) {
 		_contentString += str;
+	}
+	
+	public String getKey() {
+		return _keyString;
 	}
 	
 	public WZWXMLParser.XMLNodeType getNodeType() {

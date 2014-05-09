@@ -1,3 +1,4 @@
+package WZWXML;
 import java.util.Hashtable;
 
 public class WZWXMLParser {
