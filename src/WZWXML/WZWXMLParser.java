@@ -22,7 +22,6 @@ public class WZWXMLParser {
 	public enum XMLNodeType{
 		TYPE_ROOT,
 		TYPE_NODE,
-		TYPE_COMMENT
 	}
 			
 	protected char[] _XMLContent = null;

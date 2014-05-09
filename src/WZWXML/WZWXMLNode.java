@@ -22,6 +22,10 @@ public class WZWXMLNode {
 		}
 	}
 	
+	protected void appendingString(String str) {
+		_contentString += str;
+	}
+	
 	public WZWXMLNode(WZWXMLParser.XMLNodeType nodeType){
 		_nodeType = nodeType;
 	}
@@ -42,12 +46,12 @@ public class WZWXMLNode {
 		return _attributesHashtable.put(key, value);
 	}
 	
-	public String getAttributeWithKey(String key) {
+	public String getAttributeForKey(String key) {
 		return _attributesHashtable.get(key);
 	}
 	
-	public void appendingString(String str) {
-		_contentString += str;
+	public String getContentString() {
+		return _contentString;
 	}
 	
 	public String getKey() {
